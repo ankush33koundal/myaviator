@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aviator Game by Ankush Koundal</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(to top, #004e92, #000428);
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let score = 0;
+    let gameSpeed = 2;
+
+    const aviator = {
+      x: 100,
+      y: canvas.height / 2,
+      width: 50,
+      height: 30,
+      dy: 0,
+      gravity: 0.5,
+      lift: -10,
+      color: "#FFD700",
+    };
+
+    const obstacles = [];
+    const obstacleWidth = 60;
+    const gap = 200;
+
+    function createObstacle() {
+      const topHeight = Math.random() * (canvas.height / 2);
+      const bottomY = topHeight + gap;
+      obstacles.push({ x: canvas.width, topHeight, bottomY });
+    }
+
+    function drawAviator() {
+      ctx.fillStyle = aviator.color;
+      ctx.fillRect(aviator.x, aviator.y, aviator.width, aviator.height);
+    }
+
+    function drawObstacles() {
+      ctx.fillStyle = "#8B0000";
+      obstacles.forEach(ob => {
+        ctx.fillRect(ob.x, 0, obstacleWidth, ob.topHeight);
+        ctx.fillRect(ob.x, ob.bottomY, obstacleWidth, canvas.height - ob.bottomY);
+      });
+    }
+
+    function updateObstacles() {
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        obstacles[i].x -= gameSpeed;
+
+        // Collision detection
+        if (
+          aviator.x < obstacles[i].x + obstacleWidth &&
+          aviator.x + aviator.width > obstacles[i].x &&
+          (aviator.y < obstacles[i].topHeight || aviator.y + aviator.height > obstacles[i].bottomY)
+        ) {
+          alert("Game Over! Your score: " + score);
+          document.location.reload();
+        }
+
+        if (obstacles[i].x + obstacleWidth < 0) {
+          obstacles.splice(i, 1);
+          score++;
+          document.getElementById("score").textContent = "Score: " + score;
+        }
+      }
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawAviator();
+      drawObstacles();
+      updateObstacles();
+
+      aviator.dy += aviator.gravity;
+      aviator.y += aviator.dy;
+
+      if (aviator.y < 0 || aviator.y + aviator.height > canvas.height) {
+        alert("Game Over! Your score: " + score);
+        document.location.reload();
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        aviator.dy = aviator.lift;
+      }
+    });
+
+    setInterval(createObstacle, 1500);
+    gameLoop();
+  </script>
+</body>
+</html>
